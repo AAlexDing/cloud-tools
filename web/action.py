@@ -247,6 +247,7 @@ class WebAction:
             "delete_tv": self.delete_tv,
             "refresh_local_status_tv_by_ids": self.refresh_local_status_tv_by_ids,
             "ignore_missing_season": self.ignore_missing_season
+            "get_library_resume": self.__get_resume,
         }
         # 远程命令响应
         self._commands = {
@@ -2707,6 +2708,15 @@ class WebAction:
                     os.remove(file_path)
 
         return {"code": 1, "msg": "文件不存在"}
+
+    @staticmethod
+    def __get_resume(data):
+        """
+        获得继续观看
+        """
+        num = data.get("num") or 12
+        # 实测，plex 似乎无法按照数目返回，此处手动切片
+        return { "code": 0, "list": MediaServer().get_resume(num)[0:num] }
 
     @staticmethod
     def __start_mediasync(data):
