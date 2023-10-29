@@ -63,15 +63,15 @@ class Scraper:
                 # 电影
                 movie_nfo = os.path.join(os.path.dirname(file), "movie.nfo")
                 if os.path.exists(movie_nfo):
-                    tmdbid = self.__get_tmdbid_from_nfo(movie_nfo)
+                    tmdbid = self.get_tmdbid_from_nfo(movie_nfo)
                 file_nfo = os.path.join(os.path.splitext(file)[0] + ".nfo")
                 if not tmdbid and os.path.exists(file_nfo):
-                    tmdbid = self.__get_tmdbid_from_nfo(file_nfo)
+                    tmdbid = self.get_tmdbid_from_nfo(file_nfo)
             else:
                 # 电视剧
                 tv_nfo = os.path.join(os.path.dirname(os.path.dirname(file)), "tvshow.nfo")
                 if os.path.exists(tv_nfo):
-                    tmdbid = self.__get_tmdbid_from_nfo(tv_nfo)
+                    tmdbid = self.get_tmdbid_from_nfo(tv_nfo)
             if tmdbid and not force_nfo:
                 log.info(f"【Scraper】读取到本地nfo文件的tmdbid：{tmdbid}")
                 meta_info.set_tmdb_info(self.media.get_tmdb_info(mtype=meta_info.type,
@@ -119,7 +119,7 @@ class Scraper:
                     yield cur_path
 
     @staticmethod
-    def __get_tmdbid_from_nfo(file_path):
+    def get_tmdbid_from_nfo(file_path):
         """
         从nfo文件中获取信息
         :param file_path:

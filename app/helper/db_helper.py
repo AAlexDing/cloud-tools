@@ -2707,3 +2707,91 @@ class DbHelper:
         """
         self._db.query(PLUGINHISTORY).filter(PLUGINHISTORY.PLUGIN_ID == plugin_id,
                                              PLUGINHISTORY.KEY == key).delete()
+
+############################################# 本地剧集状态 #############################################
+    @DbPersist(_db)
+    def delete_local_status_tv(self, id):
+        """
+        删除本地剧集状态
+        """
+        self._db.query(LOCALSTATUSTV).filter(LOCALSTATUSTV.ID == int(id)).delete()
+    
+    @DbPersist(_db)
+    def insert_local_status_tv(self, title, category,tmdbid,rel_tv_id,full_season,season_missing_info,ignore_missing,paths):
+        """
+        新增本地剧集状态
+        """
+        self._db.insert(LOCALSTATUSTV(
+            TITLE=title,
+            CATEGORY=category,
+            TMDBID=tmdbid,
+            REL_TV_ID=rel_tv_id,
+            FULL_SEASON=full_season,
+            SEASON_MISSING_INFO=season_missing_info,
+            IGNORE_MISSING=ignore_missing,
+            PATHS=paths,
+        ))
+
+    def get_local_status_tv_by_id(self, id):
+        """
+        查询本地剧集状态
+        """
+        return self._db.query(LOCALSTATUSTV).filter(LOCALSTATUSTV.ID == int(id)).first()
+    
+
+    def get_local_status_tv(self, search, page, rownum,full_season):
+        """
+        查询本地剧集状态
+        """
+        if int(page) == 1:
+            begin_pos = 0
+        else:
+            begin_pos = (int(page) - 1) * int(rownum)
+        if full_season:
+            if search:
+                search = f"%{search}%"
+                count = self._db.query(LOCALSTATUSTV).filter((LOCALSTATUSTV.TITLE.like(search))
+                                                            | (LOCALSTATUSTV.TMDBID.like(search))).count()
+                data = self._db.query(LOCALSTATUSTV).filter((LOCALSTATUSTV.TITLE.like(search))
+                                                            | (LOCALSTATUSTV.TMDBID.like(search))).order_by(
+                    LOCALSTATUSTV.ID.desc()).limit(int(rownum)).offset(begin_pos).all()
+                return count, data
+            else:
+                return self._db.query(LOCALSTATUSTV).count(), self._db.query(LOCALSTATUSTV).order_by(
+                    LOCALSTATUSTV.ID.desc()).limit(int(rownum)).offset(begin_pos).all()
+        else:
+            if search:
+                search = f"%{search}%"
+                count = self._db.query(LOCALSTATUSTV).filter((LOCALSTATUSTV.TITLE.like(search))
+                                                            | (LOCALSTATUSTV.TMDBID.like(search))).filter(LOCALSTATUSTV.FULL_SEASON.is_(0)).count()
+                data = self._db.query(LOCALSTATUSTV).filter((LOCALSTATUSTV.TITLE.like(search))
+                                                            | (LOCALSTATUSTV.TMDBID.like(search))).filter(LOCALSTATUSTV.FULL_SEASON.is_(0)).order_by(
+                    LOCALSTATUSTV.ID.desc()).limit(int(rownum)).offset(begin_pos).all()
+                return count, data
+            else:
+                return self._db.query(LOCALSTATUSTV).filter(LOCALSTATUSTV.FULL_SEASON.is_(0)).count(), self._db.query(LOCALSTATUSTV).filter(LOCALSTATUSTV.FULL_SEASON.is_(0)).order_by(
+                    LOCALSTATUSTV.ID.desc()).limit(int(rownum)).offset(begin_pos).all()
+    
+    @DbPersist(_db)
+    def update_local_status_tv(self,id,dicts):
+        """
+        更新本地剧集状态
+        """
+        self._db.query(LOCALSTATUSTV).filter(LOCALSTATUSTV.ID == int(id)).update(dicts)
+
+    @DbPersist(_db)
+    def clear_local_status_tv(self):
+        """
+        清空本地剧集状态
+        """
+        self._db.query(LOCALSTATUSTV).delete()
+    
+    @DbPersist(_db)
+    def batch_insert_local_status_tv(self,local_status_tv_list):
+        """
+        批量新增本地剧集状态
+        """
+        self._db.insert(local_status_tv_list) 
+
+
+    

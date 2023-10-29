@@ -592,3 +592,29 @@ class MEDIASYNCSTATISTIC(BaseMedia):
     MOVIE_COUNT = Column(Text)
     TV_COUNT = Column(Text)
     UPDATE_TIME = Column(Text)
+
+#### 剧集管理 ####
+
+class LOCALSTATUSTV(Base):
+    '''
+    本地电视剧状态表
+    
+    ID TITLE TMDBID
+    REL_TV_ID PBD_TV表的ID
+    FULL_SEASON 本地有全集
+    SEASON_MISSING_INFO 缺失季集的状态
+    IGNORE_MISSING 手动忽略缺失季（有时候分集方式不太一样）
+    PATHS 这个电视剧在不同盘的路径
+    '''
+    __tablename__ = 'LOCAL_STATUS_TV'
+    
+    ID = Column(Integer, Sequence('ID'), primary_key=True)
+    TITLE = Column(Text)
+    CATEGORY = Column(Text)
+    TMDBID = Column(Integer,unique=True)
+    YEAR = Column(Integer)
+    REL_TV_ID = Column(Integer)
+    FULL_SEASON = Column(Integer)
+    SEASON_MISSING_INFO = Column(Text)
+    IGNORE_MISSING = Column(Integer)
+    PATHS = Column(Text)

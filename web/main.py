@@ -40,10 +40,11 @@ from app.rsschecker import RssChecker
 from app.sites import Sites, SiteUserInfo
 from app.subscribe import Subscribe
 from app.sync import Sync
+from app.tvmanager import TVManager
 from app.torrentremover import TorrentRemover
 from app.utils import DomUtils, SystemUtils, ExceptionUtils, StringUtils
 from app.utils.types import *
-from config import PT_TRANSFER_INTERVAL, Config, TMDB_API_DOMAINS
+from config import PT_TRANSFER_INTERVAL, Config, TMDB_API_DOMAINS,REFRESH_LOCAL_STATUS_TV_INTERVAL
 from web.action import WebAction
 from web.apiv1 import apiv1_bp
 from web.backend.WXBizMsgCrypt3 import WXBizMsgCrypt
@@ -364,6 +365,8 @@ def rss_history():
                            Items=RssHistory,
                            Type=mtype
                            )
+
+
 
 
 # 订阅日历页面
@@ -688,9 +691,17 @@ def service():
     RuleGroups = Filter().get_rule_groups()
     # 所有同步目录
     SyncPaths = Sync().get_sync_path_conf()
+    RefreshTVPaths = TVManager().get_tv_path_conf()
 
     # 所有服务
     Services = current_user.get_services()
+
+    if "refresh_status_tv" in Services:
+        time_refresh = str(REFRESH_LOCAL_STATUS_TV_INTERVAL) + " 小时"
+        Services['refresh_status_tv'].update({
+            'time': time_refresh,
+            'state': 'ON'
+        })
     pt = Config().get_config('pt')
     # RSS订阅
     if "rssdownload" in Services:
@@ -754,6 +765,7 @@ def service():
                            Count=len(Services),
                            RuleGroups=RuleGroups,
                            SyncPaths=SyncPaths,
+                           RefreshTVPaths=RefreshTVPaths,
                            SchedulerTasks=Services)
 
 
@@ -777,6 +789,36 @@ def history():
                            TotalPage=Result.get("totalPage"),
                            PageRange=PageRange,
                            PageNum=Result.get("currentPage"))
+
+
+# 剧集管理页面
+@App.route('/tvseriesmanager', methods=['POST', 'GET'])
+@login_required
+def tvseriesmanager():
+    pagenum = request.args.get("pagenum")
+    keyword = request.args.get("s") or ""
+    current_page = request.args.get("page")
+    full_season = request.args.get("full_season")
+    if not full_season:
+        full_season = True
+    else:
+        full_season = True if full_season == "True" else False
+    Result = WebAction().get_local_status_tv({"keyword": keyword, "page": current_page, "pagenum": pagenum,"full_season":full_season})
+    PageRange = WebUtils.get_page_range(current_page=Result.get("currentPage"),
+                                        total_page=Result.get("totalPage"))
+    RefreshTVPaths = TVManager().get_tv_path_conf()
+
+    return render_template("rename/tvseriesmanager.html",
+                           TotalCount=Result.get("total"),
+                           Count=len(Result.get("result")),
+                           TVs=Result.get("result"),
+                           Search=keyword,
+                            RefreshTVPaths=RefreshTVPaths,
+                           CurrentPage=Result.get("currentPage"),
+                           TotalPage=Result.get("totalPage"),
+                           PageRange=PageRange,
+                           PageNum=Result.get("currentPage"),
+                           FullSeason=full_season)
 
 
 # TMDB缓存页面

@@ -6,6 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 import log
 from app.helper import MetaHelper
+from app.tvmanager import TVManager
 from app.mediaserver import MediaServer
 from app.rss import Rss
 from app.sites import SiteUserInfo
@@ -13,7 +14,7 @@ from app.subscribe import Subscribe
 from app.sync import Sync
 from app.utils import ExceptionUtils, SchedulerUtils
 from app.utils.commons import singleton
-from config import METAINFO_SAVE_INTERVAL, \
+from config import METAINFO_SAVE_INTERVAL, REFRESH_LOCAL_STATUS_TV_INTERVAL, \
     SYNC_TRANSFER_INTERVAL, RSS_CHECK_INTERVAL, \
     RSS_REFRESH_TMDB_INTERVAL, META_DELETE_UNKNOWN_INTERVAL, REFRESH_WALLPAPER_INTERVAL, Config
 from web.backend.wallpaper import get_login_wallpaper
@@ -114,6 +115,12 @@ class Scheduler:
             self.SCHEDULER.add_job(MetaHelper().save_meta_data, 'interval', seconds=METAINFO_SAVE_INTERVAL)
         else:
             log.error("【SCHEDULE】save_meta_data 任务调度器未成功初始化或已关闭，无法添加新任务")
+
+        # 定时刷新本地电视剧信息
+        if self._is_scheduler_valid():
+            self.SCHEDULER.add_job(TVManager().refresh_local_status_tv, 'interval', hours=REFRESH_LOCAL_STATUS_TV_INTERVAL)
+        else:
+            log.error("【SCHEDULE】refresh_missing_season_status 任务调度器未成功初始化或已关闭，无法添加新任务")
 
         # 定时把队列中的监控文件转移走
         if self._is_scheduler_valid():

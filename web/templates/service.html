@@ -276,6 +276,39 @@
     </div>
   </div>
 </div>
+<div class="modal modal-blur fade" id="modal-service-refresh-local-status-tv" tabindex="-1" role="dialog" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">手动刷新剧集状态</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col">
+            <div class="mb-3">
+              <label class="form-label">媒体库 <span class="form-help"
+                                                    title="不选择时默认全部运行"
+                                                    data-bs-toggle="tooltip">?</span></label>
+              <div class="form-selectgroup">
+                {% for RefreshTVPath in RefreshTVPaths %}
+                  <label class="form-selectgroup-item">
+                    <input type="checkbox" name="refresh_tv_paths" value="{{ RefreshTVPath }}" class="form-selectgroup-input">
+                    <span class="form-selectgroup-label">{{ RefreshTVPath }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="javascript:run_refresh_local_status_tv_now()" id="service_refresh_btn" class="btn btn-primary">开始刷新</a>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script type="text/javascript">
 
@@ -317,6 +350,9 @@
         break;
       case "sync":
         $('#modal-service-sync').modal('show');
+        break;
+      case "refresh_status_tv":
+        $('#modal-service-refresh-local-status-tv').modal('show');
         break;
       default:
         show_ask_modal("是否立即运行 " + name + "？", function () {
@@ -508,6 +544,22 @@
       }
     });
   }
+
+
+  // 立即运行剧集刷新
+  function run_refresh_local_status_tv_now() {
+    let refresh_tv_paths = select_GetSelectedVAL("refresh_tv_paths");
+    ajax_post("run_refresh_local_status_tv", {paths: refresh_tv_paths}, function (ret) {
+      $("#modal-service-refresh-local-status-tv").modal('hide');
+      if (ret.code === 0) {
+        show_success_modal("剧集状态刷新已启动，正在后台运行");
+      } else {
+        show_fail_modal(ret.msg);
+      }
+    });
+  }
+
+
 
   // 初始化DropZone
   backup_dropzone = new Dropzone("#back_file");

@@ -1,0 +1,388 @@
+{% import 'macro/svg.html' as SVG %}
+<div class="container-xl">
+  <!-- Page title -->
+  <div class="page-header d-print-none">
+    <div class="row align-items-center">
+      <div class="col">
+        <h2 class="page-title">
+          剧集管理
+        </h2>
+      </div>
+      <div class="col-auto ms-auto d-print-none">
+        <div class="btn-list">
+          <a href="javascript:refresh_local_status_tv()"
+             class="btn btn-primary ms-auto d-none d-sm-inline-block">
+            {{ SVG.refresh() }}
+            刷新剧集状态
+          </a>
+          <a href="javascript:refresh_local_status_tv()" class="btn btn-primary d-sm-none btn-icon" >
+            {{ SVG.refresh() }}
+          </a>
+          <!-- 订阅缺失季  -->
+          <a href="javascript:batch_check_action('subscribe_missing_season')"
+             class="btn btn-yellow ms-auto d-none d-sm-inline-block">
+            {{ SVG.rss() }}
+            订阅缺失季
+          </a>
+          <a href="javascript:batch_check_action('subscribe_missing_season')" class="btn btn-primary d-sm-none btn-icon" >
+            {{ SVG.rss() }}
+          </a>
+          <!-- 批量删除  -->
+          <a href="javascript:batch_check_action('delete_tv')"
+             class="btn btn-danger ms-auto d-none d-sm-inline-block">
+            {{ SVG.trash() }}
+            批量删除
+          </a>
+          <a href="javascript:batch_check_action('delete_tv')" class="btn btn-danger d-sm-none btn-icon" >
+            {{ SVG.trash() }}
+          </a>
+          <!-- 单击切换显示/不显示完整剧集  -->
+          {% if FullSeason %}
+            <a href="javascript:toggle_full_season()"
+               class="btn btn-secondary ms-auto d-none d-sm-inline-block">
+              {{ SVG.eye_off() }}
+              隐藏完整剧集
+            </a>
+          <a href="javascript:toggle_full_season()" class="btn btn-secondary d-sm-none btn-icon" >
+            {{ SVG.eye_off()}}
+          </a>
+          {% else %}
+            <a href="javascript:toggle_full_season()"
+               class="btn btn-primary ms-auto d-none d-sm-inline-block">
+              {{ SVG.eye() }}
+              显示完整剧集
+            </a>
+          <a href="javascript:toggle_full_season()" class="btn btn-primary d-sm-none btn-icon" >
+            {{ SVG.eye()}}
+          </a>
+          {% endif %}
+
+        </div>
+      </div>
+      <!-- Page title actions -->
+    </div>
+  </div>
+</div>
+<!-- 业务页面代码 -->
+<div class="page-body">
+  <div class="container-xl">
+    <div class="row row-cards">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body border-bottom py-3">
+            <div class="d-flex">
+              <div class="text-muted">
+                共 {{ TotalCount }} 条记录
+              </div>
+              <div class="ms-auto text-muted">
+                搜索:
+                <div class="ms-2 d-inline-block">
+                  <input id="search_word" value="{{ Search }}" type="text" class="form-control form-control-sm"
+                         aria-label="搜索">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive {% if TotalCount > 0 %}table-page-body{% endif %}">
+            <table class="table table-vcenter card-table table-hover table-striped">
+              <thead>
+              <tr>
+                {% if TotalCount > 0 %}
+                  <th class="w-1">
+                    <input class="form-check-input m-0 align-middle" type="checkbox" aria-label="全选"
+                           onclick="select_SelectALL($(this).prop('checked'), 'tv-info')">
+                  </th>
+                {% endif %}
+                <th>类别</th>
+                <th>媒体信息</th>
+                <th class="col-4  col-lg-7">季状态</th>
+                <th></th>
+              </tr>
+              </thead>
+              <tbody>
+              {% if TotalCount > 0 %}
+                {% for TV in TVs %}
+                  <tr>
+                    <td class="w-1">
+                      <input class="form-check-input m-0 align-middle" name="tv-info" value="{{ TV.ID }}" type="checkbox">
+                    </td>
+                    <td>
+                    <div>
+                    {{ TV.CATEGORY }}
+                    </div>
+                    </td>
+                    <td class="w-4">
+                      <div class="d-flex py-1 align-items-center">
+                      <span class="avatar me-2 text-nowrap">
+                          {{ SVG.device_tv() }}
+                      </span>
+                        <div class="flex-fill">
+                          <div class="font-weight-medium text-nowrap">
+                            {% if TV.TMDBID %}
+                              <a href="https://www.themoviedb.org/tv/{{ TV.TMDBID }}"
+                                 target="_blank">
+                              {{ TV.TITLE }} ({{ TV.YEAR }})
+                              </a>
+                            {% else %}
+                              {{ TV.TITLE }} ({{ TV.YEAR }})
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                {% for season, data in TV.SEASON_MISSING_INFO.items() %}
+                          {% if data.MISSING_INFO %}
+                            {% if data.DUP >= 2 %}
+                              <span class="badge bg-yellow fs-4" data-bs-toggle="tooltip" data-bs-html="true" title="{{ data.MISSING_INFO }}" style="width: 4.5em;height:1.8em;margin:0.2em;">S{{ season | default('00') }}{{ SVG.box_multiple_x(data.DUP) }}</span>
+                            {% else %}
+                              <span class="badge bg-yellow fs-4" data-bs-toggle="tooltip" data-bs-html="true" title="{{ data.MISSING_INFO }}" style="width: 4.5em;height:1.8em;margin:0.2em;">S{{ season | default('00') }}</span>
+                            {% endif %}
+                          {% else %}
+                            {% if data.DUP == -1 %}
+                                <span class="badge bg-muted fs-4 " style="width: 4.5em;height:1.8em;margin:0.2em;">S{{ season | default('00') }}</span>
+                            {% elif data.DUP == 0 %}
+                                <span class="badge bg-red fs-4" style="width: 4.5em;height:1.8em;margin:0.2em;">S{{ season | default('00') }}</span>
+                            {% elif data.DUP == 1 %}
+                                <span class="badge bg-green fs-4" style="width: 4.5em;height:1.8em;margin:0.2em;">S{{ season | default('00') }}</span>
+                            {% else %}
+                                <span class="badge bg-green fs-4" style="width: 4.5em;height:1.8em;margin:0.2em;">S{{ season | default('00') }}{{ SVG.box_multiple_x(data.DUP) }}</span>
+                            {% endif %}
+                            
+                          {% endif %}
+                {% endfor %}
+                    </td>
+                    <td>
+                    <div style="text-align: right;">
+                    <a href="javascript:run_refresh_local_status_tv_by_ids_now([{{ TV.ID }}])" class="btn btn-primary w-1 btn-icon" data-bs-toggle="tooltip" title="刷新剧集状态">{{SVG.refresh()}}</a>
+                    <a href="javascript:ignore_missing_season({{ TV.ID }})" class="btn btn-secondary w-1 btn-icon"  data-bs-toggle="tooltip" title="忽略缺失季">{{SVG.alert_triangle_off()}}</a>
+                    <a href="javascript:subscribe_missing_season([{{ TV.ID }}])" class="btn btn-yellow w-1 btn-icon"  data-bs-toggle="tooltip" title="订阅缺失季">{{SVG.rss()}}</a>
+                    <a href="javascript:single_delete_tv({{ TV.ID }},'{{ TV.TITLE }} ({{ TV.YEAR }})')" class="btn btn-danger w-1 btn-icon"  data-bs-toggle="tooltip" title="删除剧集文件">{{SVG.trash()}}</a>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="4" align="center">没有数据</td>
+                </tr>
+              {% endif %}
+              </tbody>
+            </table>
+          </div>
+          {% if TotalCount > 0 %}
+            <div class="card-footer d-flex align-items-center">
+              <p class="m-0 text-muted">当前页 <span>{{ Count }}</span> 条</p>
+              <ul class="pagination m-0 ms-auto">
+                <li class="page-item {% if CurrentPage==1 %} disabled {% endif %}">
+                  <a class="page-link" href="javascript:go_pre_page('{{ Search }}', {{ CurrentPage }})" tabindex="-1"
+                     aria-disabled="true">
+                    {{ SVG.chevron_left() }}
+                  </a>
+                </li>
+                {% for page in PageRange %}
+                  <li class="page-item {% if page==CurrentPage %} active {% endif %}">
+                    <a class="page-link"
+                       href="javascript:navmenu('tvseriesmanager?s={{ Search }}&page={{ page }}&full_season={{ FullSeason }}')">{{ page }}</a>
+                  </li>
+                {% endfor %}
+                <li class="page-item {% if CurrentPage >= TotalPage %} disabled {% endif %}">
+                  <a class="page-link"
+                     href="{% if CurrentPage < TotalPage %}javascript:go_next_page('{{ Search }}', {{ CurrentPage }}){% else %}javascript:void(0){% endif %}">
+                    {{ SVG.chevron_right() }}
+                  </a>
+                </li>
+              </ul>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal modal-blur fade" id="modal-service-refresh-local-status-tv" tabindex="-1" role="dialog" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">手动刷新剧集状态</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col">
+            <div class="mb-3">
+              <label class="form-label">媒体库 <span class="form-help"
+                                                    title="不选择时默认全部运行"
+                                                    data-bs-toggle="tooltip">?</span></label>
+              <div class="form-selectgroup">
+                {% for RefreshTVPath in RefreshTVPaths %}
+                  <label class="form-selectgroup-item">
+                    <input type="checkbox" name="refresh_tv_paths" value="{{ RefreshTVPath }}" class="form-selectgroup-input">
+                    <span class="form-selectgroup-label">{{ RefreshTVPath }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="javascript:run_refresh_local_status_tv_now()" id="service_refresh_btn" class="btn btn-primary">开始刷新</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+
+  // 显示服务提示框
+  function show_service_modal(id, name) {
+    switch(id) {
+      case "refresh_status_tv":
+        $('#modal-service-refresh-local-status-tv').modal('show');
+        break;
+      default:
+        show_ask_modal("是否立即运行 " + name + "？", function () {
+          hide_ask_modal();
+          run_scheduler(id, name);
+        });
+    }
+  }
+
+  // 运行服务
+  function run_scheduler(id, name) {
+    const data = {"item": id};
+    ajax_post("sch", data, function (ret) {
+      show_success_modal(`${name} 服务启动成功，正在后台运行`);
+    });
+  }
+
+  // 上一页
+  function go_pre_page(search, page) {
+    navmenu("tvseriesmanager?s=" + search + "&page=" + (page - 1) + "&full_season={{ FullSeason }}")
+  }
+
+  // 下一页
+  function go_next_page(search, page) {
+    navmenu("tvseriesmanager?s=" + search + "&page=" + (page + 1) + "&full_season={{ FullSeason }}")
+  }
+
+
+
+  // 搜索按钮
+  $('#search_word').bind('keypress', function (event) {
+    if (event.keyCode == "13") {
+      const keyword = $("#search_word").val();
+      navmenu("tvseriesmanager?s=" + keyword + "&full_season={{ FullSeason }}");
+    }
+  });
+
+ // 刷新剧集状态
+  function refresh_local_status_tv() {
+    const tvids = select_GetSelectedVAL("tv-info");
+    if (tvids.length === 0) {
+    show_service_modal('refresh_status_tv','刷新剧集状态');
+    } else {
+      run_refresh_local_status_tv_by_ids_now(tvids);
+    }
+
+  }
+
+
+
+
+  // 单条剧集刷新
+  function run_refresh_local_status_tv_by_ids_now(tvids) {
+    ajax_post("refresh_local_status_tv_by_ids", {tvids: tvids}, function (ret) {
+      $("#modal-service-refresh-local-status-tv").modal('hide');
+      if (ret.code === 0) {
+        show_success_modal("剧集状态刷新已启动，正在后台运行");
+      } else {
+        show_fail_modal(ret.msg);
+      }
+    });
+  }
+
+  // 立即运行剧集刷新
+  function run_refresh_local_status_tv_now() {
+    let refresh_tv_paths = select_GetSelectedVAL("refresh_tv_paths");
+    ajax_post("refresh_local_status_tv", {paths: refresh_tv_paths}, function (ret) {
+      $("#modal-service-refresh-local-status-tv").modal('hide');
+      if (ret.code === 0) {
+        show_success_modal("剧集状态刷新已启动，正在后台运行");
+      } else {
+        show_fail_modal(ret.msg);
+      }
+    });
+  }
+
+  function ignore_missing_season(tvid) {
+    ajax_post("ignore_missing_season", {"tvid": tvid}, function (ret) {
+      if (ret.code === 0) {
+        show_success_modal("已忽略电视剧缺失季");
+      } else {
+        show_fail_modal(ret.msg);
+      }
+    });
+  }
+
+
+
+  // 订阅缺失季
+  function subscribe_missing_season(tvids) {
+    ajax_post("subscribe_missing_season", {"tvids": tvids}, function (ret) {
+      if (ret.code === 0) {
+        show_success_modal("订阅成功");
+      } else {
+        show_fail_modal(ret.msg);
+      }
+    });
+  }
+
+  // 单条记录订阅
+  function subscribe(tvid) {
+    const tvids = [tvid];
+    subscribe_missing_season(tvids);
+  }
+
+  //删除
+  function delete_tv(tvids, name) {
+    let msg = "";
+    show_confirm_modal(`${name} 剧集将被删除，是否确认？`, function () {
+      hide_confirm_modal();
+      ajax_post("delete_tv", {"tvids": tvids}, function (ret) {
+        window_history_refresh();
+      });
+    });
+  }
+  // 单条记录删除
+  function single_delete_tv(tvid, name) {
+    const tvids = [tvid];
+    delete_tv(tvids, name);
+  }
+
+  // 批量删除/订阅
+  function batch_check_action(flag) {
+    let tvids = select_GetSelectedVAL("tv-info")
+    if (tvids.length === 0) {
+      return;
+    }
+    if (flag.startsWith("delete")) {
+      delete_tv(tvids,'');
+    } else if (flag === "subscribe_missing_season") {
+      subscribe_missing_season(tvids);
+    }
+  }
+
+
+  // 单击切换显示/不显示完整剧集
+  function toggle_full_season() {
+    navmenu("tvseriesmanager?s={{ Search }}&page={{ CurrentPage }}&full_season={{ not FullSeason }}");
+  }
+
+
+
+
+</script>

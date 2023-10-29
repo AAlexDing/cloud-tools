@@ -41,6 +41,7 @@ from app.sites import Sites, SiteUserInfo, SiteCookie, SiteConf
 from app.subscribe import Subscribe
 from app.sync import Sync
 from app.torrentremover import TorrentRemover
+from app.tvmanager import TVManager
 from app.utils import StringUtils, EpisodeFormat, RequestUtils, PathUtils, \
     SystemUtils, ExceptionUtils, Torrent
 from app.utils.types import RmtMode, OsType, SearchType, SyncType, MediaType, MovieTypes, TvTypes, \
@@ -240,6 +241,12 @@ class WebAction:
             "get_category_config": self.get_category_config,
             "get_system_processes": self.get_system_processes,
             "run_plugin_method": self.run_plugin_method,
+            "get_local_status_tv": self.get_local_status_tv,
+            "refresh_local_status_tv": self.refresh_local_status_tv,
+            "subscribe_missing_season": self.subscribe_missing_season,
+            "delete_tv": self.delete_tv,
+            "refresh_local_status_tv_by_ids": self.refresh_local_status_tv_by_ids,
+            "ignore_missing_season": self.ignore_missing_season
         }
         # 远程命令响应
         self._commands = {
@@ -516,6 +523,7 @@ class WebAction:
             "sync": Sync().transfer_sync,
             "rssdownload": Rss().rssdownload,
             "subscribe_search_all": Subscribe().subscribe_search_all,
+            "refresh_local_status_tv": TVManager().refresh_local_status_tv,
         }
         sch_item = data.get("item")
         if sch_item and commands.get(sch_item):
@@ -1559,6 +1567,96 @@ class WebAction:
             return {"retcode": 0, "retmsg": "转移成功"}
         else:
             return {"retcode": 2, "retmsg": "、".join(ret_msg)}
+
+    @staticmethod
+    def get_local_status_tv(data):
+        """
+        查询电视剧集列表
+        """
+        PageNum = data.get("pagenum")
+        if not PageNum:
+            PageNum = 30
+        SearchStr = data.get("keyword")
+        CurrentPage = data.get("page")
+        FullSeason = data.get("full_season")
+
+        if not CurrentPage:
+            CurrentPage = 1
+        else:
+            CurrentPage = int(CurrentPage)
+        
+        if not FullSeason:
+            FullSeason = 0
+        else:
+            FullSeason = int(FullSeason)
+        
+        totalCount, tvs = TVManager().get_local_status_tv(SearchStr, CurrentPage, PageNum, FullSeason)
+        TotalPage = floor(totalCount / PageNum) + 1
+        tv_seasons_list = []
+        for tv in tvs:
+            SEASON_MISSING_INFO = json.loads(tv.SEASON_MISSING_INFO)
+            PATHS = tv.PATHS.split('|')
+            tv_seasons_list.append({
+                'ID': tv.ID,
+                'TITLE': tv.TITLE,
+                'CATEGORY': tv.CATEGORY,
+                'TMDBID': tv.TMDBID,
+                'YEAR': tv.YEAR,
+                'FULL_SEASON': tv.FULL_SEASON,
+                'SEASON_MISSING_INFO': SEASON_MISSING_INFO,
+                'IGNORE_MISSING': tv.IGNORE_MISSING,
+                'PATHS': PATHS})
+
+
+        return {
+            "code": 0,
+            "total": totalCount,
+            "result": tv_seasons_list,
+            "totalPage": TotalPage,
+            "pageNum": PageNum,
+            "currentPage": CurrentPage
+        }
+
+    @staticmethod
+    def refresh_local_status_tv(data):
+        """
+        刷新本地电视剧集状态
+        """
+        ThreadHelper().start_thread(TVManager().refresh_local_status_tv, (data.get("paths"),))
+        return {"code": 0, "msg": "执行成功"}
+
+    @staticmethod
+    def refresh_local_status_tv_by_ids(data):
+        """
+        刷新指定id本地电视剧集状态
+        """
+        ThreadHelper().start_thread(TVManager().refresh_local_status_tv_by_ids, (data.get("tvids"),))
+        return {"code": 0, "msg": "执行成功"}
+    @staticmethod
+    def subscribe_missing_season(data):
+        """
+        订阅缺失季
+        """
+        ThreadHelper().start_thread(TVManager().subscribe_missing_season, (data.get("tvids"),))
+        return {"code": 0, "msg": "执行成功"}
+
+    @staticmethod
+    def delete_tv(data):
+        """
+        删除电视剧
+        """
+        ThreadHelper().start_thread(TVManager().delete_tv, (data.get("tvids"),))
+        return {"code": 0, "msg": "执行成功"}
+
+    @staticmethod
+    def ignore_missing_season(data):
+        """
+        忽略缺失季
+        """
+        ThreadHelper().start_thread(TVManager().ignore_missing_season, (data.get("tvid"),))
+        return {"code": 0, "msg": "执行成功"}
+
+
 
     @staticmethod
     def __media_info(data):

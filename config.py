@@ -43,6 +43,8 @@ BRUSH_REMOVE_TORRENTS_INTERVAL = 300
 META_DELETE_UNKNOWN_INTERVAL = 12
 # 定时刷新壁纸的间隔（小时）
 REFRESH_WALLPAPER_INTERVAL = 1
+# 定时刷新本地电视剧状态的间隔（小时）
+REFRESH_LOCAL_STATUS_TV_INTERVAL = 24 
 # fanart的api，用于拉取封面图片
 FANART_MOVIE_API_URL = 'https://webservice.fanart.tv/v3/movies/%s?api_key=d2d31f9ecabea050fc7d68aa3146015f'
 FANART_TV_API_URL = 'https://webservice.fanart.tv/v3/tv/%s?api_key=d2d31f9ecabea050fc7d68aa3146015f'

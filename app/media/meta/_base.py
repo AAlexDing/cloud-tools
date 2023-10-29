@@ -13,139 +13,6 @@ class MetaBase(object):
     """
     proxies = None
     category_handler = None
-    # 是否处理的文件
-    fileflag = False
-    # 需要处理的文件路径，如果有
-    filePath = None
-    # 原字符串
-    org_string = None
-    # 识别词处理后字符串
-    rev_string = None
-    # 副标题
-    subtitle = None
-    # 类型 电影、电视剧
-    type = None
-    # 识别的中文名
-    cn_name = None
-    # 识别的英文名
-    en_name = None
-    # 总季数
-    total_seasons = 0
-    # 识别的开始季 数字
-    begin_season = None
-    # 识别的结束季 数字
-    end_season = None
-    # 总集数
-    total_episodes = 0
-    # 识别的开始集
-    begin_episode = None
-    # 识别的结束集
-    end_episode = None
-    # Partx Cd Dvd Disk Disc
-    part = None
-    # 识别的资源类型
-    resource_type = None
-    # 识别的效果
-    resource_effect = None
-    # 识别的分辨率
-    resource_pix = None
-    # 识别的制作组/字幕组
-    resource_team = None
-    # 自定义占位符
-    customization = None
-    # 视频编码
-    video_encode = None
-    # 音频编码
-    audio_encode = None
-    # 二级分类
-    category = ""
-    # TMDB ID
-    tmdb_id = 0
-    # IMDB ID
-    imdb_id = ""
-    # TVDB ID
-    tvdb_id = 0
-    # 豆瓣 ID
-    douban_id = 0
-    # 自定义搜索词
-    keyword = None
-    # 媒体标题
-    title = None
-    # 媒体原语种
-    original_language = None
-    # 媒体原发行标题
-    original_title = None
-    # 媒体发行日期
-    release_date = None
-    # 媒体发行流媒体
-    networks = None
-    # 播放时长
-    runtime = 0
-    # 媒体年份
-    year = None
-    # 封面图片
-    backdrop_path = None
-    poster_path = None
-    fanart_backdrop = None
-    fanart_poster = None
-    # 评分
-    vote_average = 0
-    # 描述
-    overview = None
-    # TMDB 的其它信息
-    tmdb_info = {}
-    # 本地状态 1-已订阅 2-已存在
-    fav = "0"
-    # 站点列表
-    rss_sites = []
-    search_sites = []
-    # 种子附加信息
-    # 站点名称
-    site = None
-    # 站点优先级
-    site_order = 0
-    # 操作用户
-    user_name = None
-    # 种子链接
-    enclosure = None
-    # 资源优先级
-    res_order = 0
-    # 使用的过滤规则
-    filter_rule = None
-    # 是否洗版
-    over_edition = None
-    # 种子大小
-    size = 0
-    # 做种者
-    seeders = 0
-    # 下载者
-    peers = 0
-    # 种子描述
-    description = None
-    # 详情页面
-    page_url = None
-    # 上传因子
-    upload_volume_factor = None
-    # 下载因子
-    download_volume_factor = None
-    # HR
-    hit_and_run = None
-    # 种子标签
-    labels = None
-    # 订阅ID
-    rssid = None
-    # 保存目录
-    save_path = None
-    # 下载设置
-    download_setting = None
-    # 识别辅助
-    ignored_words = None
-    replaced_words = None
-    offset_words = None
-    # 备注字典
-    note = {}
-    # 副标题解析
-    _subtitle_flag = False
     _subtitle_season_re = r"(?<![全共]\s*)[第\s]+([0-9一二三四五六七八九十S\-]+)\s*季(?!\s*[全共])"
     _subtitle_season_all_re = r"[全共]\s*([0-9一二三四五六七八九十]+)\s*季|([0-9一二三四五六七八九十]+)\s*季\s*全"
     _subtitle_episode_re = r"(?<![全共]\s*)[第\s]+([0-9一二三四五六七八九十百零EP\-]+)\s*[集话話期](?!\s*[全共])"
@@ -174,6 +41,139 @@ class MetaBase(object):
         self.en_name = en_name
         self.tmdb_id = tmdb_id
         self.imdb_id = imdb_id
+        # 是否处理的文件
+        self.fileflag = False
+        # 需要处理的文件路径，如果有
+        self.filePath = None
+        # 原字符串
+        self.org_string = None
+        # 识别词处理后字符串
+        self.rev_string = None
+        # 副标题
+        self.subtitle = None
+        # 类型 电影、电视剧
+        self.type = None
+        # 识别的中文名
+        self.cn_name = None
+        # 识别的英文名
+        self.en_name = None
+        # 总季数
+        self.total_seasons = 0
+        # 识别的开始季 数字
+        self.begin_season = None
+        # 识别的结束季 数字
+        self.end_season = None
+        # 总集数
+        self.total_episodes = 0
+        # 识别的开始集
+        self.begin_episode = None
+        # 识别的结束集
+        self.end_episode = None
+        # Partx Cd Dvd Disk Disc
+        self.part = None
+        # 识别的资源类型
+        self.resource_type = None
+        # 识别的效果
+        self.resource_effect = None
+        # 识别的分辨率
+        self.resource_pix = None
+        # 识别的制作组/字幕组
+        self.resource_team = None
+        # 自定义占位符
+        self.customization = None
+        # 视频编码
+        self.video_encode = None
+        # 音频编码
+        self.audio_encode = None
+        # 二级分类
+        self.category = ""
+        # TMDB ID
+        self.tmdb_id = 0
+        # IMDB ID
+        self.imdb_id = ""
+        # TVDB ID
+        self.tvdb_id = 0
+        # 豆瓣 ID
+        self.douban_id = 0
+        # 自定义搜索词
+        self.keyword = None
+        # 媒体标题
+        self.title = None
+        # 媒体原语种
+        self.original_language = None
+        # 媒体原发行标题
+        self.original_title = None
+        # 媒体发行日期
+        self.release_date = None
+        # 媒体发行流媒体
+        self.networks = None
+        # 播放时长
+        self.runtime = 0
+        # 媒体年份
+        self.year = None
+        # 封面图片
+        self.backdrop_path = None
+        self.poster_path = None
+        self.fanart_backdrop = None
+        self.fanart_poster = None
+        # 评分
+        self.vote_average = 0
+        # 描述
+        self.overview = None
+        # TMDB 的其它信息
+        self.tmdb_info = {}
+        # 本地状态 1-已订阅 2-已存在
+        self.fav = "0"
+        # 站点列表
+        self.rss_sites = []
+        self.search_sites = []
+        # 种子附加信息
+        # 站点名称
+        self.site = None
+        # 站点优先级
+        self.site_order = 0
+        # 操作用户
+        self.user_name = None
+        # 种子链接
+        self.enclosure = None
+        # 资源优先级
+        self.res_order = 0
+        # 使用的过滤规则
+        self.filter_rule = None
+        # 是否洗版
+        self.over_edition = None
+        # 种子大小
+        self.size = 0
+        # 做种者
+        self.seeders = 0
+        # 下载者
+        self.peers = 0
+        # 种子描述
+        self.description = None
+        # 详情页面
+        self.page_url = None
+        # 上传因子
+        self.upload_volume_factor = None
+        # 下载因子
+        self.download_volume_factor = None
+        # HR
+        self.hit_and_run = None
+        # 种子标签
+        self.labels = None
+        # 订阅ID
+        self.rssid = None
+        # 保存目录
+        self.save_path = None
+        # 下载设置
+        self.download_setting = None
+        # 识别辅助
+        self.ignored_words = None
+        self.replaced_words = None
+        self.offset_words = None
+        # 备注字典
+        self.note = {}
+        # 副标题解析
+        self._subtitle_flag = False
 
     def get_name(self):
         if self.cn_name and StringUtils.is_all_chinese(self.cn_name):
