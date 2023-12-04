@@ -64,6 +64,7 @@ class IYUUAutoSeed(_IPluginModule):
         "//a[contains(@href, 'download.php?hash=')]/@href",
         "//a[contains(@href, 'download.php?id=')]/@href",
         "//a[@class='index'][contains(@href, '/dl/')]/@href",
+        "//input[@title='DirectLink']/@value",
     ]
     _torrent_tags = ["已整理", "辅种"]
     # 待校全种子hash清单

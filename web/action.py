@@ -13,6 +13,7 @@ from math import floor
 from pathlib import Path
 from urllib.parse import unquote
 import ast
+import copy
 
 import cn2an
 from flask_login import logout_user, current_user
@@ -3692,6 +3693,9 @@ class WebAction:
                 "value": f"{item.UPLOAD_VOLUME_FACTOR} {item.DOWNLOAD_VOLUME_FACTOR}",
                 "name": MetaBase.get_free_string(item.UPLOAD_VOLUME_FACTOR, item.DOWNLOAD_VOLUME_FACTOR)
             }
+            #分辨率
+            if respix == "":
+                respix = "未知分辨率"
             # 制作组、字幕组
             if item.OTHERINFO is None:
                 releasegroup = "未知"
@@ -3749,6 +3753,8 @@ class WebAction:
                     torrent_filter["free"].append(free_item)
                 if releasegroup not in torrent_filter.get("releasegroup"):
                     torrent_filter["releasegroup"].append(releasegroup)
+                if respix not in torrent_filter.get("respix"):
+                    torrent_filter["respix"].append(respix)
                 if item.SITE not in torrent_filter.get("site"):
                     torrent_filter["site"].append(item.SITE)
                 if video_encode \
@@ -3799,6 +3805,7 @@ class WebAction:
                         "site": [item.SITE],
                         "free": [free_item],
                         "releasegroup": [releasegroup],
+                        "respix": [respix],
                         "video": [video_encode] if video_encode else [],
                         "season": [filter_season] if filter_season else []
                     }
@@ -3859,13 +3866,16 @@ class WebAction:
         return {"code": 0, "result": [rec.as_dict() for rec in Rss().get_rss_history(rtype=mtype)]}
 
     @staticmethod
-    def get_downloading():
+    def get_downloading(data = {}):
         """
         查询正在下载的任务
         """
+        dl_id = data.get("id")
+        force_list = data.get("force_list")
         MediaHander = Media()
         DownloaderHandler = Downloader()
-        torrents = DownloaderHandler.get_downloading_progress()
+        torrents = DownloaderHandler.get_downloading_progress(downloader_id=dl_id, force_list=bool(force_list))
+        
         for torrent in torrents:
             # 先查询下载记录，没有再识别
             name = torrent.get("name")
@@ -5122,8 +5132,29 @@ class WebAction:
         """
         获取下载器
         """
+        def add_is_default(dl_conf, defualt_id):
+            dl_conf["is_default"] = str(dl_conf["id"]) == defualt_id
+            return dl_conf
+        
         did = data.get("did")
-        return {"code": 0, "detail": Downloader().get_downloader_conf(did=did)}
+        downloader = Downloader()
+        resp = downloader.get_downloader_conf(did=did)
+        default_dl_id = downloader.default_downloader_id
+
+        if did:
+            """
+              单个下载器 conf
+            """
+            return {"code": 0, "detail": add_is_default(copy.deepcopy(resp), default_dl_id) if resp else None}
+        else:
+            """
+              所有下载器 conf
+            """
+            confs = copy.deepcopy(resp)
+            for key in confs:
+                add_is_default(confs[key], default_dl_id)
+
+            return {"code": 0, "detail": confs}
 
     @staticmethod
     def __test_downloader(data):
